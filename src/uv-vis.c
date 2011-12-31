@@ -9,6 +9,7 @@
 
 #include<stdio.h>
 #include<stdlib.h>
+#include<string.h>
 #include<math.h>
 
 #include"uv-vis.h"
@@ -29,7 +30,11 @@ int main(int argc, char *argv[])
 
     double pts[650][CRD_SIZE] = {{0.}};
 
-    rtrans(argv[1], &ntrans, trans, fwhm);
+    rgauss(argv[1], &ntrans, trans, fwhm);
+    if (ntrans == 0)
+    {
+        rtrans(argv[1], &ntrans, trans, fwhm);
+    }
 
     printf(" %s: %d transitions\n", argv[1], ntrans);
 
@@ -45,7 +50,9 @@ int main(int argc, char *argv[])
        printf("%12.6lf%12.6lf\n", pts[i][0], pts[i][1]);
     }
 */
-    wspec("out", npts, pts);    
+    wspec("out", npts, pts);
+
+    return 0;
 }
 
 void rtrans(char *filename, int *ntrans, double trans[][CRD_SIZE], double fwhm)
@@ -79,6 +86,48 @@ void rtrans(char *filename, int *ntrans, double trans[][CRD_SIZE], double fwhm)
     fclose(pfile);
 }
 
+void rgauss(char *filename, int *ntrans, double trans[][CRD_SIZE], double fwhm)
+{
+    int i;
+    char lign[LGN_SIZE] = "";
+    char *pchr = NULL;
+
+    FILE *pfile = NULL;
+    pfile = fopen(filename, "r");
+
+    if (pfile==NULL)
+    {
+        fprintf(stderr, "uv-vis: %s: No such file or directory\n", filename);
+        exit(0);
+    }
+
+    while (fgets(lign, LGN_SIZE, pfile) != NULL)
+    {
+        if (strstr(lign, "Excited State") != NULL)
+        {
+            pchr = strtok(lign, " ");
+            i = 0;
+            while (pchr != NULL)
+            {
+                if (i==4)
+                {
+                    sscanf(pchr, "%lf", &trans[*ntrans][0]); 
+                }
+                else if (i==8)
+                {
+                    sscanf(&pchr[2], "%lf", &trans[*ntrans][1]);
+                }
+                pchr = strtok(NULL, " ");
+                i+=1;
+            }
+            trans[*ntrans][2] = fwhm;
+            *ntrans+=1;
+        }
+    }
+
+    fclose(pfile);
+}
+
 double gauss(double x, double mu, double A, double fwhm)
 {
     double pi = acos(-1.);
@@ -89,7 +138,6 @@ double gauss(double x, double mu, double A, double fwhm)
     pos = ( x - mu ) / fwhm;
     h = A / fwhm / sqrt(pi);
 
-    printf("%lf\n", fwhm);
     return h * exp(- pow(pos, 2.) );
 }
 

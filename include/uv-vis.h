@@ -11,7 +11,8 @@
 #define CRD_SIZE 3
 #define LGN_SIZE 100
 
-void rtrans(char *filename, int *ntrans, double xyz[][CRD_SIZE], double fwhm);
+void rtrans(char *filename, int *ntrans, double trans[][CRD_SIZE], double fwhm);
+void rgauss(char *filename, int *ntrans, double trans[][CRD_SIZE], double fwhm);
 double gauss(double x, double mu, double A, double fwhm);
 void spectrum(int *npts, double pts[][CRD_SIZE], double xmin, double xmax, double xstp, int ntrans, double trans[][CRD_SIZE]);
 void wspec(char *filename, int npts, double pts[][CRD_SIZE]);
