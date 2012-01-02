@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
     rgauss(inpfile, &ntrans, trans, fwhm);
     if (ntrans == 0)
     {
-        rtrans(argv[1], &ntrans, trans, fwhm);
+        rtrans(inpfile, &ntrans, trans, fwhm);
     }
 
     printf(" %s: %d transitions\n", inpfile, ntrans);
@@ -63,6 +63,7 @@ int main(int argc, char *argv[])
 void usage()
 {
 	fprintf(stderr, "usage: uv-vis [options] [inputfile]\n\n");
+        fprintf(stderr, "   -i           inpfile\n");
 	fprintf(stderr, "   -o           outfile\n");
 	fprintf(stderr, "   --fwhm val   set fwhm to val\n");
 
@@ -121,6 +122,11 @@ void rcmdl(int argc, char *argv[], char *inpfile, char *outfile, double *fwhm)
                 fprintf(stderr, "uv-vis: missing argument for --fwhm\n");
             }
         }
+    }
+
+    if (inpfile[0] == '\0' || argc>1)
+    {
+        strcpy(inpfile, argv[1]);
     }
 
     if (outfile[0] == '\0')
