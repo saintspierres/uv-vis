@@ -11,6 +11,8 @@
 #define CRD_SIZE 3
 #define LGN_SIZE 100
 
+void usage();
+void rcmdl(int argc, char *argv[], char *inpfile, char *outfile, double *fwhm);
 void rtrans(char *filename, int *ntrans, double trans[][CRD_SIZE], double fwhm);
 void rgauss(char *filename, int *ntrans, double trans[][CRD_SIZE], double fwhm);
 double gauss(double x, double mu, double A, double fwhm);

@@ -30,13 +30,18 @@ int main(int argc, char *argv[])
 
     double pts[650][CRD_SIZE] = {{0.}};
 
-    rgauss(argv[1], &ntrans, trans, fwhm);
+    char inpfile[LGN_SIZE] = "";
+    char outfile[LGN_SIZE] = "";
+
+    rcmdl(argc, argv, inpfile, outfile, &fwhm);
+
+    rgauss(inpfile, &ntrans, trans, fwhm);
     if (ntrans == 0)
     {
         rtrans(argv[1], &ntrans, trans, fwhm);
     }
 
-    printf(" %s: %d transitions\n", argv[1], ntrans);
+    printf(" %s: %d transitions\n", inpfile, ntrans);
 
     for (i=0; i<ntrans; i++)
     {
@@ -50,9 +55,78 @@ int main(int argc, char *argv[])
        printf("%12.6lf%12.6lf\n", pts[i][0], pts[i][1]);
     }
 */
-    wspec("out", npts, pts);
+    wspec(outfile, npts, pts);
 
     return 0;
+}
+
+void usage()
+{
+	fprintf(stderr, "usage: uv-vis [options] [inputfile]\n\n");
+	fprintf(stderr, "   -o           outfile\n");
+	fprintf(stderr, "   --fwhm val   set fwhm to val\n");
+
+	exit(0);
+}
+
+void rcmdl(int argc, char *argv[], char *inpfile, char *outfile, double *fwhm)
+{
+    int i;
+
+    if (argc==1)
+    {
+        usage();
+    }
+    else if (argc==2)
+    {
+       strcpy(inpfile, argv[1]);
+    }
+
+    for (i=1; i<argc; i++)
+    {
+        if (!strcmp(argv[i], "-h"))
+        {
+            usage();
+        }
+        else if (!strcmp(argv[i], "-i"))
+        {
+            if (i<argc-1)
+            {
+                strcpy(inpfile, argv[i+1]);
+            }
+            else
+            {
+                fprintf(stderr, "uv-vis: missing argument for -i\n");
+            }
+        }
+        else if (!strcmp(argv[i], "-o"))
+        {
+            if (i<argc-1)
+            {
+                strcpy(outfile, argv[i+1]);
+            }
+            else
+            {
+                fprintf(stderr, "uv-vis: missing argument for -o\n");
+            }
+        }
+        else if (!strcmp(argv[i], "--fwhm"))
+        {
+            if (i<argc-1)
+            {
+                *fwhm=atoi(argv[i+1]);
+            }
+            else
+            {
+                fprintf(stderr, "uv-vis: missing argument for --fwhm\n");
+            }
+        }
+    }
+
+    if (outfile[0] == '\0')
+    {
+        strcpy(outfile, "stdout");
+    }
 }
 
 void rtrans(char *filename, int *ntrans, double trans[][CRD_SIZE], double fwhm)
@@ -66,7 +140,7 @@ void rtrans(char *filename, int *ntrans, double trans[][CRD_SIZE], double fwhm)
     if (pfile==NULL)
     {
         fprintf(stderr, "uv-vis: %s: No such file or directory\n", filename);
-        exit(0);
+        usage();
     }
 
     fscanf(pfile, "%d", ntrans);
@@ -98,7 +172,7 @@ void rgauss(char *filename, int *ntrans, double trans[][CRD_SIZE], double fwhm)
     if (pfile==NULL)
     {
         fprintf(stderr, "uv-vis: %s: No such file or directory\n", filename);
-        exit(0);
+        usage();
     }
 
     while (fgets(lign, LGN_SIZE, pfile) != NULL)
@@ -172,7 +246,15 @@ void wspec(char *filename, int npts, double pts[][CRD_SIZE])
     int i;
 
     FILE *pfile = NULL;
-    pfile = fopen(filename, "w");
+
+    if (!strcmp(filename, "stdout"))
+    {
+        pfile = stdout;
+    }
+    else
+    {
+        pfile = fopen(filename, "w");
+    }
 
     for (i=0; i<npts; i++)
     {
